@@ -1,4 +1,4 @@
-SELECT properties.*, AVG(property_reviews.rating) as rating
+SELECT properties.id, title, cost_per_night, AVG(property_reviews.rating) as rating
 FROM properties
 JOIN property_reviews ON properties.id = property_id
 WHERE city = 'Vancouver'
