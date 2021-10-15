@@ -122,7 +122,7 @@ exports.getAllReservations = getAllReservations;
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
- const getAllProperties = function (options, limit = 10) {
+const getAllProperties = function (options, limit = 10) {
   // 1
   const queryParams = [];
   // 2
@@ -136,19 +136,37 @@ exports.getAllReservations = getAllReservations;
   if (options.city) {
     queryParams.push(`%${options.city}%`);
     queryString += `WHERE city LIKE $${queryParams.length} `;
-  } else if (options.owner_id) {
-    queryParams.push(options.owner_id);
-    queryString += `WHERE owner_id = $${queryParams.length}`;
-  } else if (options.minimum_price_per_night) {
-    queryParams.push(options.minimum_price_per_night);
-    queryString += `WHERE cost_per_night >= $${queryParams.length} * 100`;
-  } else if (options.maximum_price_per_night) {
-    queryParams.push(options.maximum_price_per_night);
-    queryString += `AND cost_per_night <= $${queryParams.length} * 100`;
-  } else if (options.minimum_rating) {
-    queryParams.push(options.minimum_rating);
-    queryString += `WHERE average_rating >= $${queryParams.length}`;
   }
+  if (options.owner_id) {
+    queryString += `WHERE owner_id = $${queryParams.length + 1} `;
+    queryParams.push(options.owner_id);
+  }
+  if (options.minimum_price_per_night) {
+    if (queryParams.length) {
+      queryString += `AND cost_per_night >= $${queryParams.length + 1} `;
+    } else {
+      queryString += `WHERE cost_per_night >= $${queryParams.length} `;
+    }
+    queryParams.push(options.minimum_price_per_night * 100);
+  }
+  if (options.maximum_price_per_night) {
+    if (queryParams.length) {
+      queryString += `AND cost_per_night <= $${queryParams.length + 1} `;
+    } else {
+      queryString += `WHERE cost_per_night <= $${queryParams.length} `;
+    }
+    queryParams.push(options.maximum_price_per_night * 100);
+  }
+  if (options.minimum_rating) {
+    if (queryParams.length > 0) {
+      queryString += `AND `;
+    } else {
+      queryString += `WHERE `;
+    }
+    queryParams.push(`${options.minimum_rating}`);
+    queryString += `property_reviews.rating >= $${queryParams.length} `;
+  }
+
 
   // 4
   queryParams.push(limit);
